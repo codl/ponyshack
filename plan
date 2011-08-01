@@ -1,0 +1,5 @@
+all pics are stored on disk (no need for S3 there's not enough traffic)
+pics and their tags are stored in a database (sqlite? postgresql?)
+images : (ROWID id, STRING location, STRING original_filename)
+tag : (ROWID id, STRING name, ROWID synonym) (synonym are for multiple tags that mean the same thing, for example "pinkie" has "pinkie pie" as its' synonym. It can be input as "pinkie" but will always come out as "pinkie pie")
+tagmap : (ROWID tag_id, ROWID image_id)
