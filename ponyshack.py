@@ -92,7 +92,7 @@ class search:
         else:
             html = "<title>PONYSHACK, LOL</title>"
             for image in images:
-                html += "<a href='/i/%s'>"%image[0] + image[1] + "</a>, <a href='/view/%s'>"%image[0] + str(image[2]) + " views</a>" + "<br/>"
+                html += "<a href='/i/%s'>"%web.to36(image[0]) + image[1] + "</a>, <a href='/view/%s'>"%web.to36(image[0]) + str(image[2]) + " views</a>" + "<br/>"
             return html
 
 class index:
@@ -121,9 +121,39 @@ class index:
         html += "</ul>"
         return html
 
+class download:
+    @dbconnect
+    def GET(self, imageid, cursor=None):
+        imageid = int(imageid, 36)
+        cursor.execute("""
+            UPDATE image SET views = views+1 WHERE image_id = %s;
+            SELECT location, mimetype FROM image
+            WHERE image_id = %s
+            ;
+            """, (imageid, imageid))
+        image = cursor.fetchone()
+        web.header("Content-Type", image[1])
+        return open(image[0], "rb").read()
+
+class redirect:
+    def GET(self):
+        raise web.seeother("/")
+
+class submit:
+    def GET(self):
+        return """
+            <title>LOL SUBMITTING AN IMAGE</title>
+            <form action="/submit" method="POST">
+                File : <input type="file" name="file"/><br/>
+                Tags : <input type="text" name="tags"/><br/>
+                <input type="submit" value="GO GO POWER RANGERS"/>
+            </form>
+            """
+    def POST(self):
+        uploadedfile = web.input() ###
 
 class derp:
-    def GET(*args):
+    def GET():
         return "DERP"
 
 
@@ -131,8 +161,11 @@ class derp:
 urls = (
     "/", "index",
     "/view/([^/]*)", "view",
-    "/i/([^/]*)", "download",
-    "/it/([^/]*)", "thumbnail",
+    "/i/?", "redirect",
+    "/it/?", "redirect",
+    "/submit/?", "submit",
+    "/i/([^/]*)/?", "download",
+    "/it/([^/]*)/?", "thumbnail",
     "/favicon.ico", "derp", ###
     "/([^/]*)", "search"
     )
@@ -159,7 +192,7 @@ if __name__ == "__main__":
                 location TEXT NOT NULL,
                 original_filename TEXT,
                 mimetype TEXT NOT NULL,
-                time TIMESTAMP NOT NULL,
+                time TIMESTAMP NOT NULL DEFAULT now,
                 views INTEGER NOT NULL DEFAULT 0
             );
             CREATE TABLE tag_mapping (
