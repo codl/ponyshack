@@ -1,0 +1,29 @@
+body { background : #336894; margin:0; font-family: Helvetica, sans-serif; }
+h1#title { display:block; color: #164c79; position: absolute; font-size: 50px; margin:0; padding:0; top: -15px; right:0; z-index:-100; font-family: serif;}
+#footer { color: #82a3bf; text-align: center; margin: 5px; }
+
+#page { display:block; background : url('/static/background.png') repeat -200% top; z-index: 20; margin:0; padding: 10px 15px; }
+
+.tag_list { line-height: 2em; font-size: 0.8em; }
+a.tag { color:#cff; background: #07d; text-decoration:none; padding: 3px 3px; }
+a.tag:hover { background:#06a; }
+
+.image { position:relative; display: inline-block; }
+.image { margin: 0; padding:0;}
+.image a { text-decoration:none; margin: 0; padding:0;}
+.image img { text-decoration:none; margin: 0;}
+.image a.viewlink { display:none; }
+.image:hover a.viewlink { display:block; position:absolute; right:0; bottom:0; }
+
+.button_bar { margin:0; margin-top:30px; padding-left: 25px; }
+.button_bar li { display:inline; }
+.button_bar a { font-weight; bold; padding: 4px; display: inline-block; background: #011; color: #ffe; text-decoration: none;}
+.button_bar a:hover { background: #122; }
+.button_bar form { display:inline; }
+.button_bar form input { background: white; border: 1px solid #221; margin: 0px 25px; width:240px; }
+
+.autocomplete_list { background: #011; color: #eee; list-style-type: none;
+    margin: 0; padding: 0; font-size: 0.8em;}
+.autocomplete_list li {cursor: pointer;list-style-type: none; margin: 0; padding: 3px 5px;}
+.autocomplete_list li:hover, .autocomplete_list li.active {background: #122;}
+.autocomplete_list .synonym {font-size:0.9em; color: #9aa; margin-left: 6px;}
