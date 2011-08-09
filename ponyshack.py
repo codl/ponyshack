@@ -12,10 +12,10 @@ import psycopg2
 dbengine=psycopg2
 dbparam="dbname=ponyshack user=codl"
 
-picsdir = "/tmp/ps"
+picsdir = "/srv/ponyshack/ps"
 if not os.path.exists(picsdir):
     os.makedirs(picsdir)
-thumbsdir = "/tmp/pst"
+thumbsdir = "/srv/ponyshack/pst"
 if not os.path.exists(thumbsdir):
     os.makedirs(thumbsdir)
 
@@ -179,6 +179,7 @@ class download:
             """, (imageid, imageid))
         image = cursor.fetchone()
         web.header("Content-Type", image[1])
+        web.header("Cache-Control", "public, max-age=31536000") # a year
         return open(image[0], "rb").read()
 class thumbnail:
     @dbconnect
@@ -191,6 +192,7 @@ class thumbnail:
             """, (imageid,))
         image = cursor.fetchone()
         web.header("Content-Type", image[1])
+        web.header("Cache-Control", "public, max-age=31536000") # a year
         return open(image[0], "rb").read()
 
 class redirect:
@@ -316,8 +318,11 @@ class view:
                 SELECT image_id FROM image WHERE location = %s;
                 """, (image_id, image_id, files[0]))
             if not cursor.fetchone():
-                os.remove(files[0])
-                os.remove(files[1])
+                try:
+                    os.remove(files[0])
+                    os.remove(files[1])
+                except OSError:
+                    pass
             return message("This image has been banished to the moon.")
 
         if has_pegasus_powers() and webinput.tags:
@@ -369,12 +374,14 @@ class submit:
     def GET(self):
         if not has_earth_powers():
             raise web.seeother("/") ### should be a "suggest an image page"
-        return header(page_title="Submit an image") + """
+        return header(page_title="Submit a picture") + """
             <form action="/submit" enctype="multipart/form-data" method="POST">
                 File : <input type="file" name="file"/><br/>
                 Tags : <input class="autocomplete" type="text" name="tags"/><br/>
                 <input type="submit" value="GO GO POWER RANGERS"/>
             </form>
+            <h3>Rules</h3>
+            <ol><li>Please, no NSFW material.</li></ol>
             """ + footer()
     @dbconnect
     def POST(self, cursor=None):
@@ -412,7 +419,7 @@ class submit:
                 VALUES (%s, %s, %s, %s, 'now');
 
                 SELECT image_id FROM image WHERE location = %s
-                LIMIT 1;
+                ORDER BY time DESC LIMIT 1;
                 """,
             (form["file"].filename,
                 picsdir + "/" + destination,

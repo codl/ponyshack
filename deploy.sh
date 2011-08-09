@@ -1,2 +1,2 @@
 #!/bin/bash
-rsync -rcpq * thunderbird.aquageek.net:/srv/ponyshack
+rsync -rzcpq * thunderbird.aquageek.net:/srv/ponyshack

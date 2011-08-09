@@ -2,7 +2,7 @@ body { background : #336894; margin:0; font-family: Helvetica, sans-serif; }
 h1#title { display:block; color: #164c79; position: absolute; font-size: 50px; margin:0; padding:0; top: -15px; right:0; z-index:-100; font-family: serif;}
 #footer { color: #82a3bf; text-align: center; margin: 5px; }
 
-#page { display:block; background : url('/static/background.png') repeat -200% top; z-index: 20; margin:0; padding: 10px 15px; }
+#page { display:block; background : #fffeee; z-index: 20; margin:0; padding: 10px 15px; }
 
 .tag_list { line-height: 2em; font-size: 0.8em; }
 a.tag { color:#cff; background: #07d; text-decoration:none; padding: 3px 3px; }
