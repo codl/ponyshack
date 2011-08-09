@@ -22,8 +22,8 @@ a.tag:hover { background:#06a; }
 .button_bar form { display:inline; }
 .button_bar form input { background: white; border: 1px solid #221; margin: 0px 25px; width:240px; }
 
-.autocomplete_list { background: #011; color: #eee; list-style-type: none;
+.autocomplete_list { background: #eee; color: #011; border:1px solid black; list-style-type: none;
     margin: 0; padding: 0; font-size: 0.8em;}
 .autocomplete_list li {cursor: pointer;list-style-type: none; margin: 0; padding: 3px 5px;}
-.autocomplete_list li:hover, .autocomplete_list li.active {background: #122;}
+.autocomplete_list li:hover, .autocomplete_list li.active {background: #07d; color:white;}
 .autocomplete_list .synonym {font-size:0.9em; color: #9aa; margin-left: 6px;}

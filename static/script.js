@@ -39,7 +39,7 @@ var boxactivity = function(e){
             }
         }
     } else {
-        this.timeout = window.setTimeout(autocomplete, 200, this);
+        this.timeout = window.setTimeout(autocomplete, 100, this);
     }
 }
 
@@ -59,9 +59,9 @@ var updateaclist = function(e, box){
         box.aclist.setAttribute("class", "autocomplete_list")
         box.aclist.style.display = "none";
         box.aclist.style.position = "absolute";
-        box.aclist.style.top = box.offsetTop + box.offsetHeight + "px";
+        box.aclist.style.top = box.offsetTop + box.offsetHeight - 1 + "px";
         box.aclist.style.left = box.offsetLeft + "px";
-        box.aclist.style.minWidth = box.offsetWidth + "px";
+        box.aclist.style.minWidth = (box.offsetWidth - 2) + "px";
         box.aclist.addEventListener('click', function(){window.clearTimeout(box.timeout)});
         document.body.appendChild(box.aclist);
     }

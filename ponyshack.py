@@ -4,7 +4,6 @@ import web
 import re
 import os
 import subprocess
-import pylibmc
 import logging
 import hashlib
 import psycopg2
@@ -116,6 +115,8 @@ def tag_link(tag_name = None, tag_id = None, cursor = None):
             SELECT tag_name FROM tag WHERE tag_id = %s;
             """, (tag_id,))
         tag_name = cursor.fetchone()[0]
+    html = "<a href='/%s' class='tag'>%s</a>"%(tag_name,tag_name.replace(" ", "&nbsp;"))
+    return html
 
 def has_earth_powers():
     return True ### LOL EVERYONE SUBMITS
@@ -140,7 +141,7 @@ class index:
             ;""")
         for tag in cursor:
             name = tag[0]
-            html += "<a href='/%s' class='tag'>%s</a> "%(name,name)
+            html += tag_link(name) + " "
         html += """</p><h3>Some random tags</h3><p class="tag_list">"""
         cursor.execute("""
             WITH tag_ids as (
@@ -154,7 +155,7 @@ class index:
             ;""")
         for tag in cursor:
             name = tag[0]
-            html += "<a href='/%s' class='tag'>%s</a> "%(name,name)
+            html += tag_link(name) + " "
         html += "</p><h3>Most recent images</h3><div class='imageriver'>"
         cursor.execute("""
             select image_id FROM image
@@ -205,7 +206,7 @@ class tags:
         if not has_pegasus_powers:
             raise web.seeother("/")
         html = header(page_title="Managing tags")
-        webinput = web.input(tag_name=None, delete=None, new_name=None, synonym="THIS IS A VALUE")
+        webinput = web.input(tag_name=None, delete=None, new_name=None, synonym="THIS IS A DUMMY VALUE")
         if webinput.tag_name:
             if webinput.new_name:
                 if get_tag_id(webinput.new_name, create=False):
@@ -216,7 +217,7 @@ class tags:
                         UPDATE tag SET tag_name = %s WHERE tag_name = %s;
                     """, (webinput.new_name, webinput.tag_name))
                     html+="""Renamed!"""
-            if webinput.synonym != "THIS IS A VALUE":
+            if webinput.synonym != "THIS IS A DUMMY VALUE":
                 tag_id = get_tag_id(webinput.tag_name.strip(" ,"), flatten=False)
                 if webinput.synonym == '':
                     cursor.execute("""
@@ -351,14 +352,13 @@ class view:
         """ % (image_id_36, image_id_36)
         if len(tags) == 0 : html += "none"
         for tag in tags:
-            html += """<a href="/%s" class="tag">%s</a>, """%(tag, tag)
+            html += tag_link(tag)+ ", "
         html = html[:-2]
         html += """</p><p>%s</p><p>%s views since %s</p>"""%(image[2], image[0], image[1])
         if has_pegasus_powers():
             html += """<h4>administration thing until I am bothered to CSS + javascript the shit out of this.</h4>
             <form action=""><input type="text" class="autocomplete" name="tags" value='"""
             for tag in tags: html+="%s, "%tag
-            html = html[:-2]
             html+="""'/><input type="submit" value="gargle!"/><br>
             <b>DELETE</b>: <input type="submit" name="delete" value="DO IT FILLY"/>
             </form>"""
@@ -423,8 +423,9 @@ class submit:
         image_id = cursor.fetchone()[0]
         unknown_tags = []
         for tag in form["tags"].split(","):
-            tag_id = get_tag_id(tag.strip())
-            if tag_id:
+            tag = tag.strip()
+            if tag != "":
+                tag_id = get_tag_id(tag.strip())
                 cursor.execute("""
                         INSERT INTO tag_mapping (tag_id, image_id)
                         VALUES (%s, %s);""", (tag_id, image_id))
@@ -470,7 +471,7 @@ class api_autocomplete:
             tag_name = tag[0]
             if tag[1]:
                 synonym_name = get_tag_name(tag[1])
-                html += """<li tag_name="%s">%s<span class="synonym">(%s)</span></li>""" % (synonym_name,tag_name,synonym_name)
+                html += """<li tag_name="%s">%s<span class="synonym">(%s)</span></li>""" % (tag_name,tag_name,synonym_name)
             else:
                 html += """<li tag_name="%s">%s</li>""" % (tag_name, tag_name)
         html+=""
@@ -489,6 +490,8 @@ urls = (
     "/all", "all",
     "/tags", "tags",
     "/api/autocomplete", "api_autocomplete",
+    "/api/addtag", "api_addtag", ###
+    "/api/deltag", "api_deltag", ###
     "/s", "search_nojs",
     "/([^/]*)", "search"
     )
