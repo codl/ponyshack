@@ -1,13 +1,14 @@
-body { background : #336894; margin:0; font-family: Helvetica, sans-serif; }
-h1#title { display:block; color: #164c79; position: absolute; font-size: 50px; margin:0; padding:0; top: -15px; right:0; z-index:-100; font-family: serif;}
-#footer { color: #82a3bf; text-align: center; margin: 5px; }
+body { background : #441100; margin:0; font-family: Helvetica, sans-serif; }
+h1#title { display:block; color: #664000; position: absolute; font-size: 50px; margin:0; padding:0; top: -15px; right:0; z-index:-100; font-family: serif;}
+#footer { color: #664000; text-align: center; margin: 5px; }
 
-#page { display:block; background : #fffeee; z-index: 20; margin:0; padding: 10px 15px; }
+#page { display:block; background : #ffeeee; z-index: 20; margin:0; padding: 10px 15px; }
 
-.tag_list { line-height: 2em; font-size: 0.8em; }
-a.tag { color:#cff; background: #07d; text-decoration:none; padding: 3px 3px; }
-a.tag:hover { background:#06a; }
+.tag_list { line-height: 2em; font-size: 0.8em; font-weight: bold; }
+a.tag { font-weight:normal; color:#cff; background: #06c; text-decoration:none; padding: 3px 3px; }
+a.tag:hover { background:#04a; }
 
+.imageriver { text-align: center; }
 .image { position:relative; display: inline-block; }
 .image { margin: 0; padding:0;}
 .image a { text-decoration:none; margin: 0; padding:0;}
@@ -17,10 +18,13 @@ a.tag:hover { background:#06a; }
 
 .button_bar { margin:0; margin-top:30px; padding-left: 25px; }
 .button_bar li { display:inline; }
-.button_bar a { font-weight; bold; padding: 4px; display: inline-block; background: #011; color: #ffe; text-decoration: none;}
-.button_bar a:hover { background: #122; }
+.button_bar a { font-weight; bold; padding: 4px; display: inline-block; background: #111; color: #ffe; text-decoration: none;}
+.button_bar a:hover { background: #171717; }
 .button_bar form { display:inline; }
-.button_bar form input { background: white; border: 1px solid #221; margin: 0px 25px; width:240px; }
+.button_bar form input { background: white; border: 1px solid #222; margin: 0px 25px; width:240px; }
+
+.secret { opacity: 0; }
+.secret:hover { opacity: 1; }
 
 .autocomplete_list { background: #eee; color: #011; border:1px solid black; list-style-type: none;
     margin: 0; padding: 0; font-size: 0.8em;}

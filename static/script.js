@@ -62,14 +62,14 @@ var updateaclist = function(e, box){
         box.aclist.style.top = box.offsetTop + box.offsetHeight - 1 + "px";
         box.aclist.style.left = box.offsetLeft + "px";
         box.aclist.style.minWidth = (box.offsetWidth - 2) + "px";
-        box.aclist.addEventListener('click', function(){window.clearTimeout(box.timeout)});
+        box.aclist.addEventListener('click', function(){window.clearTimeout(box.timeout)}, false);
         document.body.appendChild(box.aclist);
     }
-    box.aclist.innerHTML = e.currentTarget.response
+    box.aclist.innerHTML = e.currentTarget.responseText
     box.aclist.style.display = "block"
     for (var i = 0; i < box.aclist.childNodes.length; i++){
         tag = box.aclist.childNodes[i];
-        tag.addEventListener('click', click_tag);
+        tag.addEventListener('click', click_tag, false);
     }
 }
 
@@ -79,7 +79,7 @@ var autocomplete = function(box){
     box.xhr = new XMLHttpRequest();
     box.xhr.open("GET", "/api/autocomplete?q="+box.value);
     box.xhr.send(null)
-    box.xhr.addEventListener('load', function(e){updateaclist(e, box);});
+    box.xhr.addEventListener('load', function(e){updateaclist(e, box);}, false);
     }
 
 var click_tag = function(e){
@@ -90,7 +90,6 @@ var click_tag = function(e){
 }
 
 var add_tag = function(tag, box){
-    console.log(tag, box)
     taglist = box.value.split(",");
     box.value=""
     for (var i = 0; i < taglist.length-1; i++){
@@ -104,10 +103,9 @@ var add_tag = function(tag, box){
 
 autocomplete_boxes = document.getElementsByClassName("autocomplete");
 
-console.log(autocomplete_boxes)
 for (var i=0; i < autocomplete_boxes.length; i++) {
     box = autocomplete_boxes[i];
-    box.addEventListener("focus", boxactivity);
-    box.addEventListener("keydown", boxactivity);
-    box.addEventListener("blur", boxblur);
+    box.addEventListener("focus", boxactivity, false);
+    box.addEventListener("keydown", boxactivity, false);
+    box.addEventListener("blur", boxblur, false);
 }
