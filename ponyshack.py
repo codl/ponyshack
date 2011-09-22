@@ -9,6 +9,7 @@ import hashlib
 import psycopg2
 import random
 import urllib
+import crypt
 
 
 dbengine=psycopg2
@@ -55,8 +56,8 @@ def make_thumb(source, fileformat, dest):
     elif fileformat == "PNG":
         args = "convert %s -resize x100 %s"%(source, dest)
         subprocess.call(args.split())
-        args = "optipng %s %s"%(source,dest)
-        subprocess.call(args.split())
+        args = "optipng -o4 %s %s"%(source,dest) ### to be tried out,
+        subprocess.call(args.split())              # might be too slow
 
 @dbconnect
 def get_powers(cursor):
@@ -69,6 +70,9 @@ def get_powers(cursor):
         ;""", (user_id, user_auth)) # "user" seems to be reserved
     user = cursor.fetchone()
     if user:
+        # refresh cookies
+        web.setcookie("user_id", str(user_id), 3600*24*365)
+        web.setcookie("auth", str(user_auth), 3600*24*365)
         return user[0]
     else:
         return -1
@@ -426,7 +430,7 @@ class view:
             cursor.execute("""
                 DELETE FROM image WHERE image_id = %s;
                 SELECT image_id FROM image WHERE location = %s;
-                """, (image_id, image_id, files[0]))
+                """, (image_id, files[0]))
             if not cursor.fetchone():
                 try:
                     os.remove(files[0])
@@ -486,11 +490,11 @@ class login:
     @dbconnect
     def POST(self, cursor):
         form = web.input(user_name=None, password=None)
-        pass_sha256 = hashlib.sha256(form.password).hexdigest()
+        pass_hash = crypt.crypt(form.password+"baa", "8tr034FhaM4qg")
         cursor.execute("""
             SELECT user_id FROM public.user
-            WHERE user_name = %s AND pass_sha256 = %s
-            ;""", (form.user_name, pass_sha256))
+            WHERE user_name = %s AND pass_hash = %s
+            ;""", (form.user_name, pass_hash))
         user = cursor.fetchone()
         if not user:
             return header(page_title="Logging in") + \
@@ -510,8 +514,8 @@ class login:
             cursor.execute("""
                 SELECT * FROM public.user WHERE user_id = %s;
                 """, (user_id,))
-            web.setcookie("user_id", str(user_id))
-            web.setcookie("auth", str(auth))
+            web.setcookie("user_id", str(user_id), 3600*24*365)
+            web.setcookie("auth", str(auth), 3600*24*365)
             web.header("Refresh", "0; /")
             return "Logged in, redirecting"
 
@@ -715,7 +719,7 @@ if __name__ == "__main__":
             (
                 user_id serial NOT NULL,
                 user_name text NOT NULL,
-                pass_sha256 text NOT NULL,
+                pass_hash text NOT NULL,
                 user_auth integer,
                 user_type integer NOT NULL DEFAULT 1
             );
