@@ -31,3 +31,11 @@ a.tag:hover { background:#04a; }
 .autocomplete_list li {cursor: pointer;list-style-type: none; margin: 0; padding: 3px 5px;}
 .autocomplete_list li:hover, .autocomplete_list li.active {background: #07d; color:white;}
 .autocomplete_list .synonym {font-size:0.9em; color: #9aa; margin-left: 6px;}
+
+.source-link { color:#06c; }
+.source-link:hover { color:#04a; }
+
+
+/* #edit-link { MAKE IT LOOK COOLER } */
+#edit-link.hidden,
+.edit-box.hidden {display:none;}

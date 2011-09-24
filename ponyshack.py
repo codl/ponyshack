@@ -44,6 +44,15 @@ def dbconnect(func):
         return returnvalue
     return newfunc
 
+def sanitize_url(url):
+    url = url.strip()
+    if url.find(".") == -1:
+        return ""
+    elif url.find("http://") != 0 and url.find("https://") != 0:
+        return "http://"+url
+    else:
+        return url
+
 def make_thumb(source, fileformat, dest):
     if fileformat == "GIF":
         args = "gifsicle --batch -O2 %s"%(source,)
@@ -403,7 +412,7 @@ class view:
     @dbconnect
     def GET(self, image_id_36, cursor=None):
         image_id = int(image_id_36, 36)
-        webinput = web.input(delete="lol, no", tags=None, rebuild=None)
+        webinput = web.input(delete="lol, no", tags=None, rebuild=None, source=None)
         if has_alicorn_powers() and webinput.rebuild:
             cursor.execute("""
                 SELECT location, thumb_location, mimetype
@@ -439,6 +448,16 @@ class view:
                     pass
             return header() + "This image has been banished to the moon." + footer()
 
+        if has_submit_powers() and webinput.source:
+            source = sanitize_url(webinput.source)
+            if source == "":
+                source = None
+            cursor.execute("""
+                UPDATE image SET source = %s
+                WHERE image_id = %s;
+                """, (source, image_id))
+
+
         if has_submit_powers() and webinput.tags:
             cursor.execute("""
                 SELECT tag_id FROM tag_mapping WHERE image_id=%s
@@ -459,7 +478,13 @@ class view:
         tags = []
         for tag in cursor:
             tags.append(tag[0])
-        html = header(title="Viewing an image on Ponyshack", page_title=image_id_36)
+
+        cursor.execute("""
+            SELECT source FROM image WHERE image_id = %s;
+            """, (image_id, ))
+        source=cursor.fetchone()[0]
+
+        html = header(title="Ponyshack : Viewing image "+image_id_36, page_title=image_id_36)
         html += """
         <a href="/i/%s"><img src="/i/%s" alt="image"></a><p>Tags : 
         """ % (image_id_36, image_id_36)
@@ -467,15 +492,30 @@ class view:
         for tag in tags:
             html += tag_link(tag)+ ", "
         html = html[:-2] + "</p>"
+
+        if source:
+            html += """<p>Source : <a class="source-link" href='""" +\
+                    source + """'>""" + source + """</a></p>"""
+
+
         if has_submit_powers():
+            html += """<a href="#" id="edit-link" class="hidden">Edit info</a>"""
+
+            html += """<div class="edit-box">"""
+
+            if not source:
+                source = ""
             html += """
-            <form action=""><input type="text" style="width : 350px;" class="autocomplete" name="tags" value='"""
+            Tags : <form action=""><input type="text" style="width : 350px;" class="autocomplete" name="tags" value='"""
             for tag in tags: html+="%s, "%tag
-            html+="""'/><input type="submit" value="Set tags"/><br>"""
-        if has_alicorn_powers():
-            html += """<input type="submit" name="rebuild" value="Rebuild thumbnail"/><br>
-            <b>DELETE</b>: <input type="submit" name="delete" value="DO IT FILLY"/>
-            </form>"""
+            html+="""'/><br>
+            Source URL : <input type='text' value='"""+source+"""' name='source'><br>
+            <input type="submit" value="Submit"/></form>"""
+            if has_alicorn_powers():
+                html += """<form><input type="submit" name="rebuild" value="Rebuild thumbnail"/><br>
+                <b>DELETE</b>: <input type="submit" name="delete" value="DO IT FILLY"/>
+                </form>"""
+            html += """</div>"""
         html += footer()
         return html
 
@@ -531,6 +571,7 @@ class submit:
                 URL : <input name="url"/> <em>or</em>
                 File : <input type="file" name="file"/><br/>
                 Tags : <input class="autocomplete" type="text" name="tags"/><br/>
+                Source URL : <input type="text" name="source"/> <span class="note">if applicable, eg. deviantart deviation page</span><br/>
                 <input type="submit" value="GO GO POWER RANGERS"/>
             </form>
             <h3>Guidelines</h3>
@@ -598,6 +639,12 @@ class submit:
             if tag != "":
                 tag_id = get_tag_id(tag.strip())
                 add_tag(tag_id, image_id)
+        source = sanitize_url(form["source"])
+        if source != "":
+            cursor.execute("""
+                UPDATE image SET source = %s
+                WHERE image_id = %s;
+                """, (source, image_id))
 
         return header(page_title="File submitted!") + "<p>" + filename + "<br>" + mimetype + "</p><p><a href='/submit'>&lt;&lt;BACK</a></p>" + footer()
 
@@ -605,27 +652,27 @@ class api_addtag:
     def GET(self):
         w = web.input(i=None, t=None)
         if not (w.i and w.t):
-            return "No."
+            return "2 WTF YOU DOIN"
         image_id = int(w.i, 36)
         tag_id = w.t
         result = add_tag(tag_id, image_id)
         if result:
-            return "A added"
+            return "0 added"
         else:
-            return "E mapping already exists"
+            return "1 mapping already exists"
 
 class api_rmtag:
     def GET(self):
         w = web.input(i=None, t=None)
         if not (w.i and w.t):
-            return "No."
+            return "2 WTF YOU DOIN"
         image_id = int(w.i, 36)
         tag_id = w.t
         result = rm_tag(tag_id, image_id)
         if result:
-            return "R removed"
+            return "0 removed"
         else:
-            return "E mapping does not exist"
+            return "1 mapping does not exist"
 
 class api_autocomplete:
     @dbconnect
@@ -709,7 +756,8 @@ if __name__ == "__main__":
                 original_filename TEXT,
                 mimetype TEXT NOT NULL,
                 time TIMESTAMP NOT NULL,
-                views INTEGER NOT NULL DEFAULT 0
+                views INTEGER NOT NULL DEFAULT 0,
+                source TEXT
             );
             CREATE TABLE tag_mapping (
                 tag_id INTEGER NOT NULL,
@@ -728,6 +776,7 @@ if __name__ == "__main__":
         conn.close()
     elif count == 4:
         conn.close()
+        web.config.debug = False
         app = web.application(urls, globals())
         app.run()
     else: print("There is something wrong with your tables "

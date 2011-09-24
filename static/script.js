@@ -1,4 +1,18 @@
-// I am terrible at everything javascript-related
+// I suck at everything javascript
+// :S
+
+function hasClass(ele, cls) {
+    return ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'));
+}
+function addClass(ele, cls) {
+    if (!this.hasClass(ele, cls)) ele.className += " " + cls;
+}
+function removeClass(ele, cls) {
+    if (hasClass(ele, cls)) {
+        var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
+        ele.className = ele.className.replace(reg, ' ');
+    }
+}
 
 var boxactivity = function(e){
     if (this.timeout) {
@@ -108,4 +122,30 @@ for (var i=0; i < autocomplete_boxes.length; i++) {
     box.addEventListener("focus", boxactivity, false);
     box.addEventListener("keydown", boxactivity, false);
     box.addEventListener("blur", boxblur, false);
+}
+
+var edit_boxes = document.getElementsByClassName("edit-box");
+if (edit_boxes.length != 0) {
+    for (var i=0; i < edit_boxes.length; i++){
+        box = edit_boxes[i];
+        addClass(box, "hidden");
+    }
+}
+
+function showeditboxes(e){
+    e.preventDefault()
+    var edit_boxes = document.getElementsByClassName("edit-box");
+    if (edit_boxes.length != 0) {
+        for (var i=0; i < edit_boxes.length; i++){
+            box = edit_boxes[i];
+            removeClass(box, "hidden");
+        }
+    }
+    addClass(e.currentTarget, "hidden");
+}
+
+var editlink = document.getElementById("edit-link");
+if (editlink){
+    removeClass(editlink, "hidden");
+    editlink.addEventListener("click", showeditboxes, false);
 }
