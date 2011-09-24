@@ -98,7 +98,7 @@ def has_alicorn_powers():
 
 @dbconnect
 def get_tag_id(tag, flatten = True, create = True, cursor = None):
-    tag = tag.lower().strip()
+    tag = tag.lower().strip().replace("+", " ")
     cursor.execute("SELECT synonym,tag_id FROM tag WHERE tag_name = %s", (tag,))
     result = cursor.fetchone()
     if result and flatten and result[0]: return result[0]
@@ -185,6 +185,7 @@ class all:
 class search:
     @dbconnect
     def GET(self, search, cursor = None):
+        search = search.replace("+", " ")
         taglist = search.split(",")
         temptaglist = []
         for tag in taglist:
@@ -361,6 +362,7 @@ def header(title="Ponyshack", page_title="Welcome to Ponyshack. This is Ponyshac
         <html><head>
             <title>%s</title>
             <link rel="stylesheet" type="text/css" href="/static/rainbowdashalwaysdressesin.css"/>
+            <link rel="search" href="/static/opensearch.xml" type="application/opensearchdescription+xml" title="Ponyshack" />
         </head><body><h1 id="title">%s</h1>
         """%(title, page_title)
 
@@ -378,7 +380,8 @@ def header(title="Ponyshack", page_title="Welcome to Ponyshack. This is Ponyshac
             <li><a href="/submit" class="enormous_button">
             Submit a picture</a></li>"""
 
-    html += """<li><form id="searchbar" action="/s"><input type="text" class="autocomplete" name="q"/></form></li>"""
+    html += """<li><form id="searchbar" action="/s"><input type="text" class="autocomplete" name="q" value="%s"/>
+    </form></li>"""%(search_box,)
     if not (is_logged_in()):
         html += """<li><a class="secret" href="/login">Log in</a></li>"""
     html += "</ul>"
@@ -679,7 +682,7 @@ class api_rmtag:
 class api_autocomplete:
     @dbconnect
     def GET(self, cursor=None):
-        webinput = web.input(q="")
+        webinput = web.input(q="", fmt="html")
         tag_partial = webinput.q.split(",")[-1].strip()+"%"
         exclude_tags = webinput.q.split(",")[:-1]
         exclude_tag_ids = [-1, -2]
@@ -715,7 +718,9 @@ class api_autocomplete:
             ORDER BY cnt DESC, tag_name
             LIMIT 8
             """, (tag_partial, exclude_tag_ids, tag_partial, tag_partial, exclude_tag_ids))
+
         html=""
+        json="""["%s",[  """%webinput.q #the two spaces are so the bracket doesn't get deleted if there are no tags
         for tag in cursor:
             tag_name = tag[0]
             if tag[1]:
@@ -723,8 +728,16 @@ class api_autocomplete:
                 html += """<li tag_name="%s">%s<span class="synonym">(%s)</span></li>""" % (tag_name,tag_name,synonym_name)
             else:
                 html += """<li tag_name="%s">%s</li>""" % (tag_name, tag_name)
+            newquery = ",".join(webinput.q.split(",")[:-1]+[tag_name])+", "
+            json += """ "%s", """%(newquery)
+        json = json[:-2] #remove the trailing comma
+        json += """ ]]"""
         html+=""
-        return html
+        if webinput.fmt == "json":
+            web.header("Content-Type", "application/json")
+            return json
+        else:
+            return html
 
 
 urls = (

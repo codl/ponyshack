@@ -53,7 +53,7 @@ var boxactivity = function(e){
             }
         }
     } else {
-        this.timeout = window.setTimeout(autocomplete, 100, this);
+        this.timeout = window.setTimeout(autocomplete, 50, this);
     }
 }
 

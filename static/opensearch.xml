@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:suggestions="http://www.opensearch.org/specifications/opensearch/extensions/suggestions/1.1">
+    <ShortName>Ponyshack</ShortName>
+    <Description>Search pictures on Ponyshack</Description>
+    <Tags>Ponyshack</Tags>
+    <Url type="text/html"
+        template="http://ponyshack.aquageek.net/{searchTerms}"/>
+    <Url type="application/x-suggestions+json"
+        template="http://ponyshack.aquageek.net/api/autocomplete?fmt=json&amp;q={searchTerms}"/>
+    <Url type="application/opensearchdescription+xml" rel="self"
+        template="http://ponyshack.aquageek.net/static/opensearch.xml" />
+</OpenSearchDescription>
