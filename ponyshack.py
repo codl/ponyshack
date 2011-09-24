@@ -680,18 +680,29 @@ class api_autocomplete:
     @dbconnect
     def GET(self, cursor=None):
         webinput = web.input(q="")
-        tag_partial = webinput.q.split(",")[-1].strip()
+        tag_partial = webinput.q.split(",")[-1].strip()+"%"
+        exclude_tags = webinput.q.split(",")[:-1]
+        exclude_tag_ids = [-1, -2]
+        for tag in exclude_tags:
+            tag_id = get_tag_id(tag, create=False)
+            if tag_id:
+                exclude_tag_ids.append(tag_id)
+        exclude_tag_ids = tuple(exclude_tag_ids)
+
         cursor.execute("""
             SELECT tag_name, synonym FROM (
                 SELECT tag_id, tag_name, synonym
                 FROM tag
                 WHERE tag_name LIKE %s AND synonym ISNULL
+                AND NOT tag_id IN %s
 
                 UNION
                 SELECT p.tag_id, t.tag_name, t.synonym
                 FROM tag AS t
                 INNER JOIN tag AS p ON p.tag_id = t.synonym
-                WHERE t.synonym NOTNULL AND t.tag_name LIKE %s and p.tag_name NOT LIKE %s
+                WHERE t.synonym NOTNULL
+                AND t.tag_name LIKE %s AND p.tag_name NOT LIKE %s
+                AND NOT p.tag_id IN %s
             ) AS tags
             INNER JOIN
             (
@@ -703,7 +714,7 @@ class api_autocomplete:
             ON tags.tag_id = tagcounts.tag_id
             ORDER BY cnt DESC, tag_name
             LIMIT 8
-            """, (tag_partial + "%",)*3)
+            """, (tag_partial, exclude_tag_ids, tag_partial, tag_partial, exclude_tag_ids))
         html=""
         for tag in cursor:
             tag_name = tag[0]
