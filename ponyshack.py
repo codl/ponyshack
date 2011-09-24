@@ -49,9 +49,9 @@ def sanitize_url(url):
     if url.find(".") == -1:
         return ""
     elif url.find("http://") != 0 and url.find("https://") != 0:
-        return "http://"+url
+        return urllib.quote("http://"+url)
     else:
-        return url
+        return urllib.quote(url)
 
 def make_thumb(source, fileformat, dest):
     if fileformat == "GIF":
@@ -223,7 +223,7 @@ def tag_link(tag_name = None, tag_id = None, cursor = None):
             SELECT tag_name FROM tag WHERE tag_id = %s;
             """, (tag_id,))
         tag_name = cursor.fetchone()[0]
-    html = "<a href='/%s' class='tag'>%s</a>"%(tag_name,tag_name.replace(" ", "&nbsp;"))
+    html = "<a href='/%s' class='tag'>%s</a>"%(urllib.quote(tag_name), tag_name.replace(" ", "&nbsp;"))
     return html
 
 class index:
@@ -355,7 +355,8 @@ class tags:
 
 
 def header(title="Ponyshack", page_title="Welcome to Ponyshack. This is Ponyshack.", search_box=""):
-    web.header("Content-Type", "text/html")
+    web.header("Content-Type", "text/html; charset=UTF-8")
+    web.header("Content-Language", "en")
     html = """<!DOCTYPE html>
         <html><head>
             <title>%s</title>
@@ -389,8 +390,9 @@ def header(title="Ponyshack", page_title="Welcome to Ponyshack. This is Ponyshac
 def footer():
     return """</div>
         <div id="footer">MLP:FiM &copy; Hasbro, blah blah fair use, this footer is completely pointless</div></body>
+        </html>
         <script type="text/javascript" src="/static/script.js"></script>
-        </html>"""
+        """
 
 def image_link(image_id=None, image_id_36=None, thumbnail=True):
     if not image_id and not image_id_36:
@@ -405,7 +407,7 @@ def image_link(image_id=None, image_id_36=None, thumbnail=True):
         <img alt="image" src="%s"/>
         </a>
         <a href="/view/%s" class="viewlink">
-            <img src="/static/wrench2.png"/>
+            <img alt="more" src="/static/wrench2.png"/>
         </a></span>"""%(image_id_36, img_url, image_id_36)
 
 class view:

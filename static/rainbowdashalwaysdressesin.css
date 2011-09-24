@@ -5,7 +5,7 @@ h1#title { display:block; color: #664000; position: absolute; font-size: 50px; m
 #page { display:block; background : #ffeeee; z-index: 20; margin:0; padding: 10px 15px; }
 
 .tag_list { line-height: 2em; font-size: 0.8em; font-weight: bold; }
-a.tag { font-weight:normal; color:#cff; background: #06c; text-decoration:none; padding: 3px 3px; }
+a.tag { font-weight:normal; color:#cff; background: #06c; text-decoration:none; padding: 3px 3px; text-shadow: 0 1px 0 #024; border-radius: 2px; }
 a.tag:hover { background:#04a; }
 
 .imageriver { text-align: center; }
@@ -32,10 +32,11 @@ a.tag:hover { background:#04a; }
 .autocomplete_list li:hover, .autocomplete_list li.active {background: #07d; color:white;}
 .autocomplete_list .synonym {font-size:0.9em; color: #9aa; margin-left: 6px;}
 
-.source-link { color:#06c; }
+.source-link { color:#06c; text-shadow: 0 1px 0 #fff;}
 .source-link:hover { color:#04a; }
 
 
-/* #edit-link { MAKE IT LOOK COOLER } */
+#edit-link { padding:5px; font-size: 0.6em; background: #ddd; text-shadow: 0 1px 0 #fff; border: 1px solid #888; color: #03d;}
+#edit-link:hover {text-shadow: 0 1px 0 #eee;}
 #edit-link.hidden,
 .edit-box.hidden {display:none;}
