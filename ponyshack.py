@@ -49,9 +49,9 @@ def sanitize_url(url):
     if url.find(".") == -1:
         return ""
     elif url.find("http://") != 0 and url.find("https://") != 0:
-        return urllib.quote("http://"+url)
+        return urllib.quote("http://"+url, "/:#?&=")
     else:
-        return urllib.quote(url)
+        return urllib.quote(url, "/:#?&=")
 
 def make_thumb(source, fileformat, dest):
     if fileformat == "GIF":
@@ -683,7 +683,7 @@ class api_autocomplete:
     @dbconnect
     def GET(self, cursor=None):
         webinput = web.input(q="", fmt="html")
-        tag_partial = webinput.q.split(",")[-1].strip()+"%"
+        tag_partial = webinput.q.split(",")[-1].strip().lower()+"%"
         exclude_tags = webinput.q.split(",")[:-1]
         exclude_tag_ids = [-1, -2]
         for tag in exclude_tags:
@@ -729,7 +729,7 @@ class api_autocomplete:
             else:
                 html += """<li tag_name="%s">%s</li>""" % (tag_name, tag_name)
             newquery = ",".join(webinput.q.split(",")[:-1]+[tag_name])+", "
-            json += """ "%s", """%(newquery)
+            json += """ "%s", """%(newquery.lower())
         json = json[:-2] #remove the trailing comma
         json += """ ]]"""
         html+=""
