@@ -172,9 +172,9 @@ class all:
                 ;"""
                 );
         images = cursor.fetchall()
-        html = header(page_title = "ALL THE THINGS",
+        html = header(page_title = "all",
                 search_box = "all",
-                title = "You're killing my bandwidth, but that's okay, I still love you")
+                title = "Ponyshack : Viewing all")
         html += "<div class='imageriver'>"
         for image in images:
             html += image_link(image_id = image[0])

@@ -19,7 +19,7 @@ a.tag:hover { background:#04a; }
 
 .button_bar { margin:0; margin-top:30px; padding-left: 25px; }
 .button_bar li { display:inline; }
-.button_bar a { font-weight; bold; padding: 4px; display: inline-block; background: #111; color: #ffe; text-decoration: none;}
+.button_bar a { padding: 4px; display: inline-block; background: #111; color: #ffe; text-decoration: none;}
 .button_bar a:hover { background: #171717; }
 .button_bar form { display:inline; }
 .button_bar form input { background: white; border: 1px solid #222; margin: 0px 25px; width:240px; }
