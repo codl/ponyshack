@@ -98,7 +98,7 @@ def has_alicorn_powers():
 
 @dbconnect
 def get_tag_id(tag, flatten = True, create = True, cursor = None):
-    tag = tag.lower().strip().replace("+", " ")
+    tag = tag.lower().strip().replace('+"', " '")
     cursor.execute("SELECT synonym,tag_id FROM tag WHERE tag_name = %s", (tag,))
     result = cursor.fetchone()
     if result and flatten and result[0]: return result[0]
@@ -511,9 +511,9 @@ class view:
             if not source:
                 source = ""
             html += """
-            Tags : <form action=""><input type="text" style="width : 350px;" class="autocomplete" name="tags" value='"""
+            Tags : <form action=""><input type="text" style="width : 350px;" class="autocomplete" name="tags" value="""+'"'
             for tag in tags: html+="%s, "%tag
-            html+="""'/><br>
+            html+='"'+"""/><br>
             Source URL : <input type='text' value='"""+source+"""' name='source'><br>
             <input type="submit" value="Submit"/></form>"""
             if has_alicorn_powers():
