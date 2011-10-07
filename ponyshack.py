@@ -98,7 +98,7 @@ def has_alicorn_powers():
 
 @dbconnect
 def get_tag_id(tag, flatten = True, create = True, cursor = None):
-    tag = tag.lower().strip().replace('+"', " '")
+    tag = tag.lower().strip().replace('+', " ")
     cursor.execute("SELECT synonym,tag_id FROM tag WHERE tag_name = %s", (tag,))
     result = cursor.fetchone()
     if result and flatten and result[0]: return result[0]
@@ -224,7 +224,7 @@ def tag_link(tag_name = None, tag_id = None, cursor = None):
             SELECT tag_name FROM tag WHERE tag_id = %s;
             """, (tag_id,))
         tag_name = cursor.fetchone()[0]
-    html = "<a href='/%s' class='tag'>%s</a>"%(urllib.quote(tag_name), tag_name.replace(" ", "&nbsp;"))
+    html = "<a href='/%s' class='tag'>%s</a>"%(urllib.quote(tag_name), tag_name.replace(" ", "&nbsp;").replace('>', "&gt;").replace('<', "&lt;").replace('"', "&quot;"))
     return html
 
 class index:
@@ -272,7 +272,7 @@ class index:
 class download:
     @dbconnect_gen
     def GET(self, imageid, cursor=None):
-        imageid = int(imageid, 36)
+        imageid = int(imageid.split(".")[0], 36)
         cursor.execute("""
             UPDATE image SET views = views+1 WHERE image_id = %s;
             SELECT location, mimetype FROM image
@@ -409,9 +409,8 @@ def image_link(image_id=None, image_id_36=None, thumbnail=True):
     return """<span class="image"><a href="/i/%s">
         <img alt="image" src="%s"/>
         </a>
-        <a href="/view/%s" class="viewlink">
-            <img alt="more" src="/static/wrench2.png"/>
-        </a></span>"""%(image_id_36, img_url, image_id_36)
+        <a href="/view/%s" class="viewlink">More</a>
+        </span>"""%(image_id_36, img_url, image_id_36)
 
 class view:
     @dbconnect
@@ -512,7 +511,7 @@ class view:
                 source = ""
             html += """
             Tags : <form action=""><input type="text" style="width : 350px;" class="autocomplete" name="tags" value="""+'"'
-            for tag in tags: html+="%s, "%tag
+            for tag in tags: html+="%s, "%tag.replace('"', ' ')
             html+='"'+"""/><br>
             Source URL : <input type='text' value='"""+source+"""' name='source'><br>
             <input type="submit" value="Submit"/></form>"""
@@ -746,6 +745,9 @@ urls = (
     "/i/?", "redirect",
     "/it/?", "redirect",
     "/submit/?", "submit",
+    #"/i/([^/]*).png", "download",
+    #"/i/([^/]*).gif", "download",
+    #"/i/([^/]*).jpg", "download",
     "/i/([^/]*)", "download",
     "/it/([^/]*)", "thumbnail",
     "/all", "all",

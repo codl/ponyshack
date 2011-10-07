@@ -10,12 +10,11 @@ a.tag { font-weight:normal; color:#cff; background: #06c; text-decoration:none; 
 a.tag:hover { background:#04a; }
 
 .imageriver { text-align: center; }
-.image { position:relative; display: inline-block; }
-.image { margin: 0; padding:0;}
+.image { position:relative; display: inline-block; margin: 0; padding:0;}
 .image a { text-decoration:none; margin: 0; padding:0;}
-.image img { text-decoration:none; margin: 0;}
-.image a.viewlink { display:none; }
-.image:hover a.viewlink { display:block; position:absolute; right:0; bottom:0; }
+.image img { text-decoration:none; margin: 0; min-width:20px; max-height: 100px;}
+.image a.viewlink { width: 20px; height: 20px; display:block; position:absolute; right:0; bottom:0; background:url("/static/wrench3.png"); text-indent:-9999px;}
+.image:hover a.viewlink { background:url("/static/wrench4.png"); }
 
 .button_bar { margin:0; margin-top:30px; padding-left: 25px; }
 .button_bar li { display:inline; }
