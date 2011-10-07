@@ -44,6 +44,13 @@ def dbconnect(func):
         return returnvalue
     return newfunc
 
+def escape(s, nbsp=False):
+    s = s.replace("<", "&lt;").replace(">", "&gt;")
+    s = s.replace('"', "&quot;")
+    if nbsp:
+        s = s.replace(" ", "&nbsp;")
+    return s
+
 def sanitize_url(url):
     url = url.strip()
     if url.find(".") == -1:
@@ -98,7 +105,8 @@ def has_alicorn_powers():
 
 @dbconnect
 def get_tag_id(tag, flatten = True, create = True, cursor = None):
-    tag = tag.lower().strip().replace('+', " ")
+    tag = tag.lower().strip().replace('+', " ").replace('"', ' ')
+    # escaping " upstream because it's a pain to escape and unescape everywhere
     cursor.execute("SELECT synonym,tag_id FROM tag WHERE tag_name = %s", (tag,))
     result = cursor.fetchone()
     if result and flatten and result[0]: return result[0]
@@ -224,7 +232,7 @@ def tag_link(tag_name = None, tag_id = None, cursor = None):
             SELECT tag_name FROM tag WHERE tag_id = %s;
             """, (tag_id,))
         tag_name = cursor.fetchone()[0]
-    html = "<a href='/%s' class='tag'>%s</a>"%(urllib.quote(tag_name), tag_name.replace(" ", "&nbsp;").replace('>', "&gt;").replace('<', "&lt;").replace('"', "&quot;"))
+    html = "<a href='/%s' class='tag'>%s</a>"%(urllib.quote(tag_name), escape(tag_name, nbsp=True))
     return html
 
 class index:
@@ -291,7 +299,7 @@ class download:
 class thumbnail:
     @dbconnect_gen
     def GET(self, imageid, cursor=None):
-        imageid = int(imageid, 36)
+        imageid = int(imageid.split(".")[0], 36)
         cursor.execute("""
             SELECT thumb_location, mimetype FROM image
             WHERE image_id = %s
@@ -397,20 +405,33 @@ def footer():
         <script type="text/javascript" src="/static/script.js"></script>
         """
 
-def image_link(image_id=None, image_id_36=None, thumbnail=True):
+@dbconnect
+def image_link(image_id=None, image_id_36=None, thumbnail=True, extension=True, cursor=None):
     if not image_id and not image_id_36:
         return ""
     elif image_id:
         image_id_36 = web.to36(image_id)
-    if thumbnail:
-        img_url = "/it/"+image_id_36
+    if extension:
+        cursor.execute("""
+            SELECT mimetype FROM image WHERE image_id = %s
+            """, (image_id or int(image_id_36, 36),))
+        mime = cursor.fetchone()[0]
+        if mime == "image/png": suffix=".png"
+        elif mime == "image/jpeg": suffix=".jpg"
+        elif mime == "image/gif": suffix=".gif"
+        else: suffix=""
+
     else:
-        img_url = "/i/"+image_id_36
+        suffix=""
+    if thumbnail:
+        img_url = "/it/"+image_id_36+suffix
+    else:
+        img_url = "/i/"+image_id_36+suffix
     return """<span class="image"><a href="/i/%s">
         <img alt="image" src="%s"/>
         </a>
         <a href="/view/%s" class="viewlink">More</a>
-        </span>"""%(image_id_36, img_url, image_id_36)
+        </span>"""%(image_id_36+suffix, img_url, image_id_36)
 
 class view:
     @dbconnect
@@ -724,9 +745,9 @@ class api_autocomplete:
             tag_name = tag[0]
             if tag[1]:
                 synonym_name = get_tag_name(tag[1])
-                html += """<li tag_name="%s">%s<span class="synonym">(%s)</span></li>""" % (tag_name,tag_name,synonym_name)
+                html += """<li tag_name="%s">%s<span class="synonym">(%s)</span></li>""" % (tag_name,escape(tag_name),escape(synonym_name))
             else:
-                html += """<li tag_name="%s">%s</li>""" % (tag_name, tag_name)
+                html += """<li tag_name="%s">%s</li>""" % (tag_name, escape(tag_name))
             newquery = ",".join(webinput.q.split(",")[:-1]+[tag_name])+", "
             json += """ "%s", """%(newquery.lower())
         json = json[:-2] #remove the trailing comma
