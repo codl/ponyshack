@@ -1,2 +1,2 @@
 #!/bin/bash
-rsync -rzcpq * thunderbird.aquageek.net:/srv/ponyshack && echo "BREEEP"
+rsync -rzcpq * ana.aquageek.net:/home/srv/ponyshack && echo "BREEEP"

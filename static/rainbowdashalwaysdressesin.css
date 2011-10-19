@@ -1,6 +1,10 @@
 body { background : #441100; margin:0; font-family: Helvetica, sans-serif; }
 h1#title { display:block; color: #664000; position: absolute; font-size: 50px; margin:0; padding:0; top: -15px; right:0; z-index:-100; font-family: serif;}
+
 #footer { color: #664000; text-align: center; margin: 5px; }
+#footer p { margin: 6px; }
+#footer a { color: #80602a; }
+#footer a:hover { color: #a67c34; }
 
 #page { display:block; background : #ffeeee; z-index: 20; margin:0; padding: 10px 15px; }
 
@@ -19,7 +23,7 @@ a.tag:hover { background:#04a; }
 .button_bar { margin:0; margin-top:30px; padding-left: 25px; }
 .button_bar li { display:inline; }
 .button_bar a { padding: 4px; display: inline-block; background: #111; color: #ffe; text-decoration: none;}
-.button_bar a:hover { background: #171717; }
+.button_bar a:hover { background: #202020; color:white; }
 .button_bar form { display:inline; }
 .button_bar form input { background: white; border: 1px solid #222; margin: 0px 25px; width:240px; }
 

@@ -10,6 +10,7 @@ import psycopg2
 import random
 import urllib
 import crypt
+import shutil
 
 
 dbengine=psycopg2
@@ -61,19 +62,28 @@ def sanitize_url(url):
         return urllib.quote(url, "/:#?&=")
 
 def make_thumb(source, fileformat, dest):
-    if fileformat == "GIF":
-        args = "gifsicle --batch -O2 %s"%(source,)
-        subprocess.call(args.split())
-        args = "gifsicle -o %s --resize _x100 -O2 %s"%(dest, source)
-        subprocess.call(args.split())
-    elif fileformat == "JPEG":
-        args = "convert %s -quality 85 -resize x100 %s"%(source, dest)
-        subprocess.call(args.split())
-    elif fileformat == "PNG":
-        args = "convert %s -resize x100 %s"%(source, dest)
-        subprocess.call(args.split())
-        args = "optipng -o4 %s %s"%(source,dest) ### to be tried out,
-        subprocess.call(args.split())              # might be too slow
+    with open("/dev/null","w") as devnull:
+        if fileformat == "GIF":
+            args = "gifsicle -o %s --resize _x100 -O2 %s"%(dest, source)
+            sp = subprocess.Popen(args.split(), stdout=devnull)
+            sp.wait()
+            args = "gifsicle --batch -O2 %s"%(source,)
+            sp = subprocess.Popen(args.split(), stdout=devnull)
+            sp.wait()
+        elif fileformat == "JPEG":
+            args = "jpegoptim -q --strip-all %s"%(source,)
+            sp = subprocess.Popen(args.split(), stdout=devnull)
+            sp.wait()
+            args = "convert %s -quality 85 -resize x100 %s"%(source, dest)
+            sp = subprocess.Popen(args.split(), stdout=devnull)
+            sp.wait()
+        elif fileformat == "PNG":
+            args = "convert %s -resize x100 %s"%(source, dest)
+            sp = subprocess.Popen(args.split(), stdout=devnull)
+            sp.wait()
+            args = "optipng -o4 %s %s"%(source,dest)
+            sp = subprocess.Popen(args.split(), stdout=devnull)
+            sp.wait()
 
 @dbconnect
 def get_powers(cursor):
@@ -289,13 +299,8 @@ class download:
             """, (imageid, imageid))
         image = cursor.fetchone()
         web.header("Content-Type", image[1])
-        web.header("Transfer-Encoding", "chunked")
         web.header("Cache-Control", "public, max-age=31536000") # a year
-        f = open(image[0], "rb")
-        data = f.read(10000)
-        while data:
-            yield data
-            data = f.read(10000)
+        return open(image[0], "rb").read()
 class thumbnail:
     @dbconnect_gen
     def GET(self, imageid, cursor=None):
@@ -307,13 +312,8 @@ class thumbnail:
             """, (imageid,))
         image = cursor.fetchone()
         web.header("Content-Type", image[1])
-        web.header("Transfer-Encoding", "chunked")
         web.header("Cache-Control", "public, max-age=31536000") # a year
-        f = open(image[0], "rb")
-        data = f.read(1000)
-        while data:
-            yield data
-            data = f.read(1000)
+        return open(image[0], "rb").read()
 
 class redirect:
     def GET(self):
@@ -357,8 +357,8 @@ class tags:
                             UPDATE tag SET synonym = %s WHERE tag_id = %s;
                             """, (synonym_id, tag_id, synonym_id, tag_id, synonym_id, tag_id))
                         html +="Synonym'd!"
-        html += """<form>Rename <input class="autocomplete" name="tag_name"/> to <input name="new_name"/><input type="submit"/></form>
-        <form>Make <input class="autocomplete" name="tag_name"/> a synonym of <input class="autocomplete" name="synonym"/><input type="submit"/></form>"""
+        html += """<form>Rename <input class="autocomplete" autocomplete="off" name="tag_name"/> to <input name="new_name"/><input type="submit"/></form>
+        <form>Make <input class="autocomplete" autocomplete="off" name="tag_name"/> a synonym of <input class="autocomplete" autocomplete="off" name="synonym"/><input type="submit"/></form>"""
         html += footer()
         return html
 
@@ -388,7 +388,7 @@ def header(title="Ponyshack", page_title="Welcome to Ponyshack. This is Ponyshac
             <li><a href="/submit" class="enormous_button">
             Submit a picture</a></li>"""
 
-    html += """<li><form id="searchbar" action="/s"><input type="text" class="autocomplete" name="q" value="%s"/>
+    html += """<li><form id="searchbar" action="/s"><input type="text" class="autocomplete" autocomplete="off" name="q" value="%s"/>
     </form></li>"""%(search_box,)
     if not (is_logged_in()):
         html += """<li><a class="secret" href="/login">Log in</a></li>"""
@@ -400,7 +400,10 @@ def header(title="Ponyshack", page_title="Welcome to Ponyshack. This is Ponyshac
 
 def footer():
     return """</div>
-        <div id="footer">MLP:FiM &copy; Hasbro, blah blah fair use, this footer is completely pointless</div></body>
+        <div id="footer">
+        <p>MLP:FiM &copy; Hasbro, blah blah fair use, this footer is completely pointless</p>
+        <p><a href="mailto:corentin@aquageek.net">Have feedback?</a></p>
+        </div></body>
         </html>
         <script type="text/javascript" src="/static/script.js"></script>
         """
@@ -424,14 +427,15 @@ def image_link(image_id=None, image_id_36=None, thumbnail=True, extension=True, 
     else:
         suffix=""
     if thumbnail:
-        img_url = "/it/"+image_id_36+suffix
+        return """<span class="image"><a href="/i/%s">
+            <img alt="image" src="/it/%s"/>
+            </a><a href="/view/%s" class="viewlink">More</a>
+            </span>"""%(image_id_36+suffix, image_id_36+suffix, image_id_36)
     else:
-        img_url = "/i/"+image_id_36+suffix
-    return """<span class="image"><a href="/i/%s">
-        <img alt="image" src="%s"/>
-        </a>
-        <a href="/view/%s" class="viewlink">More</a>
-        </span>"""%(image_id_36+suffix, img_url, image_id_36)
+        return """<a href="/i/%s">
+            <img alt="image" src="/i/%s"/>
+            </a>
+            </span>"""%(image_id_36+suffix, image_id_36+suffix)
 
 class view:
     @dbconnect
@@ -510,9 +514,10 @@ class view:
         source=cursor.fetchone()[0]
 
         html = header(title="Ponyshack : Viewing image "+image_id_36, page_title=image_id_36)
+        html += image_link(image_id_36=image_id_36, thumbnail=False)
         html += """
-        <a href="/i/%s"><img src="/i/%s" alt="image"></a><p>Tags : 
-        """ % (image_id_36, image_id_36)
+        <p>Tags : 
+        """
         if len(tags) == 0 : html += "none  "
         for tag in tags:
             html += tag_link(tag)+ ", "
@@ -531,7 +536,7 @@ class view:
             if not source:
                 source = ""
             html += """
-            Tags : <form action=""><input type="text" style="width : 350px;" class="autocomplete" name="tags" value="""+'"'
+            Tags : <form action=""><input type="text" style="width : 350px;" class="autocomplete" autocomplete="off" name="tags" value="""+'"'
             for tag in tags: html+="%s, "%tag.replace('"', ' ')
             html+='"'+"""/><br>
             Source URL : <input type='text' value='"""+source+"""' name='source'><br>
@@ -595,7 +600,7 @@ class submit:
             <form action="/submit" enctype="multipart/form-data" method="POST">
                 URL : <input name="url"/> <em>or</em>
                 File : <input type="file" name="file"/><br/>
-                Tags : <input class="autocomplete" type="text" name="tags"/><br/>
+                Tags : <input class="autocomplete" autocomplete="off" type="text" name="tags"/><br/>
                 Source URL : <input type="text" name="source"/> <span class="note">if applicable, eg. deviantart deviation page</span><br/>
                 <input type="submit" value="GO GO POWER RANGERS"/>
             </form>
@@ -642,7 +647,7 @@ class submit:
         destination = hashlib.sha1(open(tempfile, "rb").read())\
                 .hexdigest() + "." + fileformat.lower()
         make_thumb(tempfile, fileformat, thumbsdir + "/" + destination)
-        os.rename(tempfile, picsdir + "/" + destination)
+        shutil.move(tempfile, picsdir + "/" + destination)
         cursor.execute("""
                 INSERT INTO image
                 (original_filename, location, thumb_location, mimetype, time)
