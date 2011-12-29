@@ -92,8 +92,8 @@ var updateaclist = function(e, box){
 var autocomplete = function(box){
     box.xhr = new XMLHttpRequest();
     box.xhr.open("GET", "/api/autocomplete?q="+box.value);
-    box.xhr.send(null)
     box.xhr.addEventListener('load', function(e){updateaclist(e, box);}, false);
+    box.xhr.send(null)
     }
 
 var click_tag = function(e){
@@ -115,7 +115,7 @@ var add_tag = function(tag, box){
     box.focus();
 }
 
-autocomplete_boxes = document.getElementsByClassName("autocomplete");
+var autocomplete_boxes = document.getElementsByClassName("autocomplete");
 
 for (var i=0; i < autocomplete_boxes.length; i++) {
     box = autocomplete_boxes[i];

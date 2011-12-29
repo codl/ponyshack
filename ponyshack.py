@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 
 import web
 import re
@@ -288,7 +288,7 @@ class index:
         return html
 
 class download:
-    @dbconnect_gen
+    @dbconnect
     def GET(self, imageid, cursor=None):
         imageid = int(imageid.split(".")[0], 36)
         cursor.execute("""
@@ -301,8 +301,10 @@ class download:
         web.header("Content-Type", image[1])
         web.header("Cache-Control", "public, max-age=31536000") # a year
         return open(image[0], "rb").read()
+
 class thumbnail:
-    @dbconnect_gen
+    #@dbconnect_gen
+    @dbconnect
     def GET(self, imageid, cursor=None):
         imageid = int(imageid.split(".")[0], 36)
         cursor.execute("""
@@ -314,6 +316,11 @@ class thumbnail:
         web.header("Content-Type", image[1])
         web.header("Cache-Control", "public, max-age=31536000") # a year
         return open(image[0], "rb").read()
+#        with open(image[0], "rb") as f:
+#          data = f.read(1024)
+#          while data:
+#            yield data
+#            data = f.read(1024)
 
 class redirect:
     def GET(self):
@@ -596,7 +603,7 @@ class submit:
     def GET(self):
         if not has_submit_powers():
             raise web.seeother(domain+"/")
-        return header(page_title="Submit a picture") + """
+        return header(title="Submitting a picture on Ponyshack", page_title="Submit a picture") + """
             <form action="/submit" enctype="multipart/form-data" method="POST">
                 URL : <input name="url"/> <em>or</em>
                 File : <input type="file" name="file"/><br/>
@@ -832,6 +839,7 @@ if __name__ == "__main__":
         conn.close()
         web.config.debug = False
         app = web.application(urls, globals())
+        web.wsgi.runwsgi = lambda func, addr=None: web.wsgi.runfcgi(func, addr)
         app.run()
     else: print("There is something wrong with your tables "
             + str(count))
